@@ -15,7 +15,7 @@ def Reconhecimento():
     
     # Inicializando a webcam
     print("A webcam foi inicializada.")
-    print("Pressione a tecla [Q] para finalizar a execução do programa.")
+    print("Pressione a tecla [Q] enquanto a janela da Webcam estiver selecionada para finalizar a execução do programa.")
     video_capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     # O código é executado enquanto os frames estiverem sendo capturados ou a tecla [Q] não for pressionada
@@ -31,7 +31,7 @@ def Reconhecimento():
 
         # Localizando faces no frame
         faces = face_cascade.detectMultiScale(gray,
-                                            scaleFactor=1.1,
+                                            scaleFactor=1.05,
                                             minNeighbors=5,
                                             minSize=(60, 60),
                                             flags=cv2.CASCADE_SCALE_IMAGE)
