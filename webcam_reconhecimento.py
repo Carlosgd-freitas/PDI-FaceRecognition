@@ -1,69 +1,92 @@
 import face_recognition
-import imutils
 import pickle
-import time
 import cv2
-import os
- 
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_alt2.xml')
-# load the known faces and embeddings saved in last file
-data = pickle.loads(open('face_enc', "rb").read())
- 
-print("Streaming started")
-video_capture = cv2.VideoCapture(0)
-# loop over frames from the video file stream
-while True:
-    # grab the frame from the threaded video stream
-    ret, frame = video_capture.read()
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray,
-                                         scaleFactor=1.1,
-                                         minNeighbors=5,
-                                         minSize=(60, 60),
-                                         flags=cv2.CASCADE_SCALE_IMAGE)
- 
-    # convert the input frame from BGR to RGB 
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # the facial embeddings for face in input
-    encodings = face_recognition.face_encodings(rgb)
-    names = []
-    # loop over the facial embeddings incase
-    # we have multiple embeddings for multiple fcaes
-    for encoding in encodings:
-       #Compare encodings with encodings in data["encodings"]
-       #Matches contain array with boolean values and True for the embeddings it matches closely
-       #and False for rest
-        matches = face_recognition.compare_faces(data["encodings"],
-         encoding)
-        #set name =inknown if no encoding matches
-        name = "Unknown"
-        # check to see if we have found a match
-        if True in matches:
-            #Find positions at which we get True and store them
-            matchedIdxs = [i for (i, b) in enumerate(matches) if b]
-            counts = {}
-            # loop over the matched indexes and maintain a count for
-            # each recognized face face
-            for i in matchedIdxs:
-                #Check the names at respective indexes we stored in matchedIdxs
-                name = data["names"][i]
-                #increase count for the name we got
-                counts[name] = counts.get(name, 0) + 1
-            #set name which has highest count
-            name = max(counts, key=counts.get)
- 
- 
-        # update the list of names
-        names.append(name)
-        # loop over the recognized faces
-        for ((x, y, w, h), name) in zip(faces, names):
-            # rescale the face coordinates
-            # draw the predicted face name on the image
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX,
-             0.75, (0, 255, 0), 2)
-    cv2.imshow("Frame", frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-video_capture.release()
-cv2.destroyAllWindows()
+
+def Reconhecimento():
+    """
+    Inicializa o processo de reconhecimento facial através da webcam do usuário. Este processo pode ser
+    finalizado a qualquer momento ao pressionar a tecla [Q].
+    """
+
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_alt.xml')
+
+    # Carregando o dicionário "data" salvo no arquivo binário "features"
+    data = pickle.loads(open('features', "rb").read())
+    
+    # Inicializando a webcam
+    print("A webcam foi inicializada.")
+    print("Pressione a tecla [Q] para finalizar a execução do programa.")
+    video_capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+    # O código é executado enquanto os frames estiverem sendo capturados ou a tecla [Q] não for pressionada
+    while True:
+        # Captura um frame da webcam
+        ret, frame = video_capture.read()
+        if not ret:
+            print('ERRO: O frame da câmera não pode ser capturado.')
+            break
+
+        # Convertendo o frame para escala de cinza
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Localizando faces no frame
+        faces = face_cascade.detectMultiScale(gray,
+                                            scaleFactor=1.1,
+                                            minNeighbors=5,
+                                            minSize=(60, 60),
+                                            flags=cv2.CASCADE_SCALE_IMAGE)
+    
+        # Convertendo o frame para RGB
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Gerando os encodings das faces localizadas no frame
+        encodings = face_recognition.face_encodings(rgb)
+
+        names = [] # Vetor contendo os nomes dos indivíduos que foram localizados
+
+        # Para cada enconding
+        for encoding in encodings:
+            # Comparando o enconding do frame com os encodings extraídos da base de dados 
+            matches = face_recognition.compare_faces(data["encodings"], encoding)
+
+            # Primeiramente, um indivíduo será atribuído como "Desconhecido"
+            name = "Desconhecido"
+
+            # Se algum casamento foi realizado entre o enconding em questão e os encodings extraídos
+            if True in matches:
+                # Posições em que um casamento ocorreu (True)
+                matchedIdxs = [i for (i, b) in enumerate(matches) if b]
+
+                counts = {} # Dicionário que contará o número de casamentos para cada nome
+
+                # Percorre o vetor que contém as posições em que casamentos ocorreram
+                for i in matchedIdxs:
+                    # Nome do indivíduo referente ao respectivo índice (i)
+                    name = data["names"][i]
+
+                    # Incrementando a contagem em 1 para o nome em questão
+                    counts[name] = counts.get(name, 0) + 1
+
+                # O indivíduo será atribuído com o nome com a maior contagem
+                name = max(counts, key=counts.get)
+    
+            # Atualizando a lista que contém os nomes dos indivíduos presentes no frame
+            names.append(name)
+
+            # Percorrendo as faces reconhecidas
+            for ((x, y, w, h), name) in zip(faces, names):
+                # Desenhando a bounding box no frame
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 128), 2)
+
+                # Escrevendo o nome do indivíduo no frame
+                cv2.putText(frame, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 128), 2)
+
+        cv2.imshow("Webcam", frame)
+
+        # O programa será encerrado quando o usuário apertar a tecla [Q]
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Fechando as janelas da webcam
+    video_capture.release()
+    cv2.destroyAllWindows()
