@@ -1,4 +1,33 @@
+import math
 import numpy as np
+import face_recognition
+
+def DistanciaEmConfianca(face_distance, face_match_threshold=0.6):
+    """
+    Recebe uma distância resultante da comparação de duas faces e um limiar, e retorna um valor de confiança.
+    """
+    if face_distance > face_match_threshold:
+        range = (1.0 - face_match_threshold)
+        linear_val = (1.0 - face_distance) / (range * 2.0)
+        return linear_val
+    else:
+        range = face_match_threshold
+        linear_val = 1.0 - (face_distance / (range * 2.0))
+        return linear_val + ((1.0 - linear_val) * math.pow((linear_val - 0.5) * 2, 0.2))
+
+def CalcularConfianca(face_enconding_frame, face_encondings_database, face_match_threshold = 0.6):
+    """
+    Retorna um valor de confiança para a menor distância encontrada entre o enconding do frame da webcam
+    e os encondigs da base de dados que foram casados na etapa de reconhecimento facial.
+    """
+    dists = face_recognition.face_distance(face_encondings_database, face_enconding_frame)
+
+    menor = 99999
+    for d in dists:
+        if d < menor:
+            menor = d
+
+    return DistanciaEmConfianca(menor, face_match_threshold)
 
 def RotuloEmNome(rotulo):
     """
