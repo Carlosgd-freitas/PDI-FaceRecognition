@@ -60,9 +60,6 @@ def Reconhecimento():
                 # Posições em que um casamento ocorreu (True)
                 matchedIndexes = [i for (i, b) in enumerate(matches) if b]
 
-                # Vetor contendo os nomes referentes à cada índice
-                matchedNames = []
-
                 # Dicionário que contará o número de casamentos para cada nome
                 counts = {} 
 
@@ -74,21 +71,18 @@ def Reconhecimento():
                     # Incrementando a contagem em 1 para o nome em questão
                     counts[name] = counts.get(name, 0) + 1
 
-                    # Adicionando o nome à lista de nomes referentes à cada índice (i)
-                    matchedNames.append(name)
-
                     # Adicionando o encoding à lista de encodings referentes à cada índice (i)
                     matchedEncodings.append(data["encodings"][i])
 
                 # O indivíduo será atribuído com o nome com a maior contagem
                 name = max(counts, key=counts.get)
     
+            # Atualizando a lista que contém os nomes dos indivíduos presentes no frame
+            names.append(name)
+
             # Calculando a maior confiança obtida (em porcentagem) e atualizando a lista dos valores de confiança
             conf = utils.CalcularConfianca(encoding, matchedEncodings) * 100
             confidences.append(conf)
-
-            # Atualizando a lista que contém os nomes dos indivíduos presentes no frame
-            names.append(name)
 
             # Percorrendo as faces reconhecidas
             for ((x, y, w, h), name, conf) in zip(faces, names, confidences):

@@ -41,6 +41,9 @@ def RotuloEmNome(rotulo):
     elif rotulo == 2:
         return "Laura_Martins"
     
+    elif rotulo == 3:
+        return "Barbara_Leticia"
+    
     else:
         return "Desconhecido"
 
@@ -54,6 +57,9 @@ def NomeEmRotulo(nome):
     
     elif nome == "Laura_Martins":
         return 2
+    
+    elif nome == "Barbara_Leticia":
+        return 3
     
     else:
         return 0
